@@ -1,0 +1,48 @@
+# Tempo config — minimal local backend for tracing.
+# Receives OTLP from the api on :4318 (HTTP) / :4317 (gRPC).
+# Persists traces locally; retention 1h (dev only).
+
+server:
+  http_listen_port: 3200
+  log_level: warn
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  trace_idle_period: 10s
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 1h
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal
+
+# Expose internal metrics to Prometheus too — Tempo is a real production-grade
+# component and self-reports its scrape metrics in OpenMetrics format.
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+  storage:
+    path: /var/tempo/generator/wal
+
+# Allow Tempo to compute service-graph and span metrics from incoming traces.
+# This is what powers Grafana's "Service Graph" panel.
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]

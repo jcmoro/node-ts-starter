@@ -1,0 +1,50 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (built inside the image)
+node_modules
+web/node_modules
+
+# Build artefacts
+dist
+build
+web/dist
+*.tsbuildinfo
+
+# Tests & coverage
+coverage
+*.test.ts
+test-results
+
+# Local env & secrets
+.env
+.env.local
+.env.*.local
+
+# Local data
+*.db
+*.db-journal
+data/
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+
+# Docs (re-included explicitly per Dockerfile when needed)
+# docs/  ← do NOT ignore globally; the web image needs it
+
+# Tooling output
+.biome
+*.log
+npm-debug.log*
+
+# Docker-specific
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+Makefile

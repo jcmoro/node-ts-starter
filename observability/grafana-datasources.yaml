@@ -1,0 +1,44 @@
+# Grafana provisioning — datasources.
+# Loaded by Grafana at startup from /etc/grafana/provisioning/datasources/.
+#
+# We don't auto-provision dashboards on purpose — Grafana JSON is brittle and
+# learning to build a dashboard in the UI (cap. 15 + cap. 16) is part of the
+# point. Once you have one you like, export it to JSON and commit it.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 5s
+      httpMethod: POST
+      # Show exemplars on histograms — links from a histogram bucket point at
+      # specific traces. Powerful when wired up.
+      exemplarTraceIdDestinations:
+        - name: traceId
+          datasourceUid: tempo
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # Jump from a trace span to the metric range of its time window.
+      tracesToMetrics:
+        datasourceUid: prometheus
+      # Service graph + span metrics powered by Tempo's metrics_generator.
+      serviceMap:
+        datasourceUid: prometheus
+      # Default span lookup: by service + operation, last 5 minutes.
+      lokiSearch:
+        datasourceUid: ''
+      search:
+        hide: false
+      nodeGraph:
+        enabled: true

@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+# Read-only by default; jobs that need more must opt in explicitly.
+permissions:
+  contents: read
+
+# Cancel in-flight runs on the same branch (except main, where we let every
+# commit finish so audit logs are complete).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  quality:
+    name: Lint, typecheck, tests
+    runs-on: ubuntu-latest
+
+    # Service container: Postgres on localhost:5432 for the integration tests
+    # that need a real database (postgres-user-repository.test.ts).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      # When this is set, postgres-user-repository.test.ts runs against the
+      # service container instead of being skipped.
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          # Two lock files (root + web/) → two cache keys.
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install backend deps
+        run: npm ci
+
+      - name: Install web deps
+        run: cd web && npm ci
+
+      - name: Quality gates (lint + typecheck + tests)
+        run: make check
+
+      - name: Build web (Vite production bundle)
+        run: cd web && npm run build
+
+  images:
+    name: Build images (no push)
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Both image builds share the GHA cache. cache-to mode=max stores every
+      # layer; the next run only rebuilds what changed.
+      - name: Build api image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.api
+          push: false
+          tags: node-ts-starter-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.web
+          push: false
+          tags: node-ts-starter-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max

@@ -1,0 +1,81 @@
+# Development override.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   (or `make up-dev`)
+#
+# Differences from production compose:
+#   - api: bind-mount src/, --watch enabled, LOG_LEVEL=debug
+#   - api: also bind-mounts migrations/ so they're picked up live
+#   - api: DATABASE_URL points to the local `db` service by default
+#   - db:  new service — postgres 16 alpine, exposed on host port 55432
+#   - web: replaces nginx with a Node container running Vite dev server (5173)
+#
+# To target Supabase from local dev instead of the bundled `db` service,
+# set DATABASE_URL in .env (it overrides the default below) and stop the
+# `db` service: `docker compose stop db`.
+
+services:
+  api:
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      # Default to the local `db` service; override via .env DATABASE_URL.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/app}
+    command:
+      - node
+      - --watch
+      - --experimental-strip-types
+      - --experimental-sqlite
+      - src/index.ts
+    volumes:
+      - ./src:/app/src:ro
+      - ./migrations:/app/migrations:ro
+      - api-data-dev:/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: ntsa-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    ports:
+      - "${DB_PORT:-55432}:5432"
+    volumes:
+      - db-data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - app
+
+  web:
+    image: node:22-alpine
+    container_name: ntsa-web-dev
+    working_dir: /repo/web
+    command:
+      - sh
+      - -c
+      - "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./web:/repo/web
+      - ./docs:/repo/docs:ro
+      - web-node-modules:/repo/web/node_modules
+    ports:
+      - "5173:5173"
+    healthcheck:
+      disable: true
+    depends_on: []
+
+volumes:
+  api-data-dev:
+  db-data-dev:
+  web-node-modules:

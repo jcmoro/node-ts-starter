@@ -1,0 +1,47 @@
+version: 2
+updates:
+  # Backend dependencies.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 5
+    groups:
+      types:
+        patterns: ['@types/*']
+      production:
+        dependency-type: production
+
+  # Frontend dependencies.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 5
+    groups:
+      production:
+        dependency-type: production
+
+  # GitHub Actions versions in workflow files.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: Europe/Madrid
+
+  # Docker base images (Dockerfile.api, Dockerfile.web).
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: Europe/Madrid

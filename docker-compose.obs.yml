@@ -1,0 +1,102 @@
+# Observability stack — Prometheus + Tempo + Grafana.
+#
+# Usage (combined with app stack):
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.dev.yml \
+#     -f docker-compose.obs.yml \
+#     up
+#
+# Or via Makefile:
+#   make obs-up      # full stack: app + obs
+#   make obs-down    # tear down
+#
+# Endpoints (host):
+#   Grafana    → http://localhost:3001    (anon-admin enabled, no login)
+#   Prometheus → http://localhost:9090
+#   Tempo API  → http://localhost:3200
+#
+# Endpoints (internal docker network only):
+#   tempo:4318 (OTLP HTTP)   ← where the api ships traces
+#   tempo:4317 (OTLP gRPC)
+#   prometheus:9090          ← scraping target
+#   api:3000                 ← scraped by Prometheus
+
+services:
+  api:
+    environment:
+      # Send traces to Tempo. The SDK reads this; tracing.ts switches from
+      # console exporter to OTLP HTTP automatically when set.
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    depends_on:
+      tempo:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    container_name: ntsa-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=2h
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: ntsa-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    user: "0"  # Tempo needs to write to /var/tempo
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - app
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: ntsa-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      # Dev convenience: no login, full admin. NEVER in production.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor
+    volumes:
+      - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"  # 3000 is taken by api on host
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+    networks:
+      - app
+
+volumes:
+  prometheus-data:
+  tempo-data:
+  grafana-data:
