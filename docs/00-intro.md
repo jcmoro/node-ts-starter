@@ -53,6 +53,7 @@ El curso no sustituye al libro de Dan Vanderkam (https://effectivetypescript.com
 | 14 — Type-level testing | 50, 55, 56, 77 |
 | 15 — Métricas Prometheus | 34, 41, 76, 78 |
 | 16 — OpenTelemetry tracing | 27, 33, 41, 76 |
+| 17 — Stack observabilidad | 41, 65, 76, 78 |
 
 Al final de cada capítulo encontrarás una sección **📖 Lectura paralela** con los items concretos y un link directo al repo del libro.
 
