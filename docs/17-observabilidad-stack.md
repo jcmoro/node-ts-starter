@@ -436,4 +436,4 @@ Errores típicos: YAML malformed, path equivocado dentro del container, permisos
 ---
 
 **Anterior:** [16 — OpenTelemetry tracing](./16-opentelemetry-tracing.md)
-**Siguiente:** *(por decidir — deploy real, image signing + SBOM, OpenAPI/Scalar)*
+**Siguiente:** [18 — Narrowing y type guards](./18-narrowing-y-type-guards.md) — track de TS idiomático avanzado (docs 18–23)

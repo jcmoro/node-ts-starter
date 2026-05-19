@@ -54,6 +54,14 @@ El curso no sustituye al libro de Dan Vanderkam (https://effectivetypescript.com
 | 15 — Métricas Prometheus | 34, 41, 76, 78 |
 | 16 — OpenTelemetry tracing | 27, 33, 41, 76 |
 | 17 — Stack observabilidad | 41, 65, 76, 78 |
+| 18 — Narrowing y type guards | 5, 22, 42, 59 |
+| 19 — Generics avanzados | 26, 50, 51, 52 |
+| 20 — Conditional types e `infer` | 50, 51, 52, 53 |
+| 21 — Template literal y mapped types | 14, 15, 53 |
+| 22 — Overloads y `satisfies` | 21, 49, 50 |
+| 23 — Declaration merging | 13, 79, 82 |
+
+Los capítulos 18–23 son un **track de TS idiomático avanzado** — los puedes leer una vez tienes el track principal (00–17) y el código del repo te resulta familiar. Cubren narrowing profundo, generics con constraints/varianza, conditional types, mapped types, overloads/`satisfies` y declaration merging.
 
 Al final de cada capítulo encontrarás una sección **📖 Lectura paralela** con los items concretos y un link directo al repo del libro.
 

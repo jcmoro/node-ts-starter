@@ -275,6 +275,163 @@ Ahora cualquier `Email` que tengas en el sistema **está garantizadamente normal
 
 Esto es el principio "parse, don't validate" del capítulo 03 llevado al extremo: el tipo no solo dice "es válido", dice "está en forma canónica".
 
+## Composición con `as const` y `readonly`
+
+Los branded types se llevan especialmente bien con dos herramientas que **estrechan** el tipo: `as const` y `readonly`. Juntos te dan valores **inmutables** y **literales** — útiles para constantes de dominio.
+
+### `as const` — convertir a literales y readonly
+
+Sin `as const`, los literales se "widenan" a su tipo base:
+
+```ts
+const colors = ['red', 'green', 'blue'];
+//    ^? string[]
+
+const point = { x: 1, y: 2 };
+//    ^? { x: number; y: number }
+```
+
+Con `as const`, TS preserva los valores **exactos** y marca todo como `readonly`:
+
+```ts
+const colors = ['red', 'green', 'blue'] as const;
+//    ^? readonly ['red', 'green', 'blue']
+
+const point = { x: 1, y: 2 } as const;
+//    ^? { readonly x: 1; readonly y: 2 }
+```
+
+Tres cambios sobre el tipo inferido:
+1. **Literales en vez de tipos base** (`'red'`, no `string`).
+2. **Tuples en vez de arrays** (`['a', 'b']`, no `string[]`).
+3. **`readonly` propagado** a todas las propiedades.
+
+### Patrón: uniones literales sin enum
+
+Para un campo que solo puede tener N valores, en lugar de `enum`:
+
+```ts
+const ROLES = ['admin', 'user', 'guest'] as const;
+type Role = typeof ROLES[number];
+//   ^? 'admin' | 'user' | 'guest'
+
+function hasAccess(role: Role): boolean { /* ... */ }
+hasAccess('admin'); // ✅
+hasAccess('root');  // ❌ Argument of type '"root"' is not assignable
+```
+
+`typeof ROLES[number]` es la idiomática para "todos los elementos del array como union". Sin `as const`, `ROLES[number]` sería `string` y perderías el cierre.
+
+> 💡 **Por qué no `enum`**: los `enum` de TS tienen problemas (no son tree-shakeable, emiten runtime, son nominales lo cual sorprende en un sistema estructural). `as const` + union es **lo idiomático en TS moderno**.
+
+### Composición con brands
+
+```ts
+const VALID_STATUSES = ['pending', 'success', 'error'] as const;
+type Status = typeof VALID_STATUSES[number];
+
+const StatusSchema = z.enum(VALID_STATUSES).brand<'Status'>();
+type BrandedStatus = z.infer<typeof StatusSchema>;
+//   ^? ('pending' | 'success' | 'error') & z.BRAND<'Status'>
+```
+
+Un único array `VALID_STATUSES` te da:
+- Un valor que puedes recorrer en runtime.
+- Un type `Status` para anotar parámetros.
+- Un schema Zod que valida.
+- Un brand para distinguirlo de cualquier otro string.
+
+**Una sola fuente de verdad.** Si añades `'archived'` al array, los cuatro derivados se actualizan.
+
+### `readonly` arrays vs `readonly` propiedades
+
+Atención a la distinción:
+
+```ts
+// readonly de propiedad — no puedes reasignar
+type A = { readonly id: string };
+const a: A = { id: '1' };
+a.id = '2'; // ❌
+
+// readonly array — array no se puede mutar
+type B = readonly string[];
+const b: B = ['a', 'b'];
+b.push('c');  // ❌ Property 'push' does not exist on type 'readonly string[]'
+b[0] = 'x';   // ❌ Index signature is readonly
+```
+
+Y la forma tuple:
+
+```ts
+type Pair = readonly [string, number];
+const p: Pair = ['Jose', 30];
+p[0] = 'Maria'; // ❌
+```
+
+`readonly` no es contagioso por defecto — un `readonly { user: User }` no implica `User` readonly. Para profundidad, necesitas `DeepReadonly` (ver doc 21) o `as const` en el valor concreto.
+
+### Readonly como contrato de API
+
+Un patrón muy útil: tu función devuelve `readonly` para señalar "no mutes esto":
+
+```ts
+function getActiveUsers(): readonly User[] {
+  return cache.users.filter(u => u.active);
+}
+
+const users = getActiveUsers();
+users.push(newUser); // ❌ — el caller no puede mutar el array
+```
+
+Aunque internamente el array sea mutable, la firma comunica intent. Es contrato unilateral — TS no impide que el implementador mute el array que devuelve, pero el caller queda protegido.
+
+### Brands + readonly + as const — combinado
+
+Ejemplo real para el repo:
+
+```ts
+// src/domain/permissions.ts (conceptual)
+export const PERMISSIONS = [
+  'read:users',
+  'write:users',
+  'read:orders',
+  'write:orders',
+] as const;
+
+export type Permission = typeof PERMISSIONS[number];
+
+export const PermissionSchema = z.enum(PERMISSIONS).brand<'Permission'>();
+export type BrandedPermission = z.infer<typeof PermissionSchema>;
+
+export function hasPermission(
+  user: User,
+  required: readonly BrandedPermission[],
+): boolean {
+  return required.every(p => user.permissions.includes(p));
+}
+```
+
+`hasPermission` recibe un `readonly BrandedPermission[]`. El caller no puede confundir un `string[]` con permisos válidos, y la función no puede mutar el array. Garantías de ambos lados, **cero overhead runtime**.
+
+### Trampas con `as const`
+
+1. **`as const` solo aplica al literal**, no se propaga:
+   ```ts
+   const a = { name: 'Jose' } as const;
+   const b = { user: a };
+   //    ^? { user: { readonly name: 'Jose' } }
+   // pero b.user no es readonly
+   ```
+   Para readonly en profundidad, `as const` debe estar en el literal exterior.
+
+2. **`as const` con cómputo**:
+   ```ts
+   const x = ('hello' + ' world') as const; // ❌
+   ```
+   Solo funciona sobre literales sintácticos, no expresiones computadas.
+
+3. **`readonly` no migra a JSON**: si serializas un objeto readonly y lo deserializas, el resultado **no** tiene readonly. Re-parsea con tu schema para recuperar las garantías.
+
 ## Ejercicio
 
 1. **Refactoriza un nuevo campo**: añade `age` al `CreateUserSchema` como `PositiveInt = z.number().int().positive().brand<'PositiveInt'>()`. Comprueba con `npm run typecheck` que `parsed.data.age` tiene tipo `PositiveInt`.
@@ -287,11 +444,16 @@ Esto es el principio "parse, don't validate" del capítulo 03 llevado al extremo
 
 5. **Lee Zod's `BRAND`** (https://github.com/colinhacks/zod/blob/main/src/types.ts, busca "BRAND"). Verás `declare const BRAND: unique symbol` y el truco completo. Vale la pena 10 minutos para ver el patrón sin azúcar.
 
+6. **`as const` + brand**: crea `const ENVIRONMENTS = ['dev', 'staging', 'prod'] as const`, deriva `Environment` con `typeof ENVIRONMENTS[number]`, y branda con Zod. Usa `EnvironmentSchema.parse(process.env.NODE_ENV)` para validar el entorno al arrancar. Comprueba que `EnvironmentSchema.options` te devuelve el array original.
+
+7. **`readonly` como contrato**: cambia la firma de algún helper que devuelva un array a `readonly Foo[]`. Intenta hacer `.push()` en el caller. Observa qué métodos siguen disponibles (`map`, `filter`, `find`, `slice`) y cuáles no (`push`, `pop`, `sort`, `splice`). ¿Por qué `.sort()` no? Pista: muta in-place.
+
 ## 📖 Lectura paralela
 
 *Effective TypeScript* (2ª ed) — items que profundizan este capítulo:
 
 - **[Item 4 — *Get Comfortable with Structural Typing*](https://github.com/danvk/effective-typescript/blob/main/samples/ch-intro/structural.md)** — el problema que los brands resuelven. Si entiendes por qué TS acepta `Email` donde se pide `UserId` (porque ambos son `string`), entiendes por qué necesitamos el truco.
+- **[Item 14 — *Use `readonly` to Avoid Errors Associated with Mutation*](https://github.com/danvk/effective-typescript/blob/main/samples/ch-types/readonly.md)** — readonly como contrato de API y composición con brands.
 - **[Item 35 — *Prefer More Precise Alternatives to String Types*](https://github.com/danvk/effective-typescript/blob/main/samples/ch-design/avoid-strings.md)** — la motivación general: cualquier `string` es demasiado permisivo en un sistema con dominio.
 - **[Item 41 — *Name Types Using the Language of Your Problem Domain*](https://github.com/danvk/effective-typescript/blob/main/samples/ch-design/language-of-domain.md)** — `Email`, `UserId`, `NonEmptyString` no son nombres técnicos; son palabras del dominio. Esa es la regla.
 - **[Item 64 — *Consider Brands for Nominal Typing*](https://github.com/danvk/effective-typescript/blob/main/samples/ch-recipes/brands.md)** — **el capítulo paralelo del libro**. Está dedicado entero a esta técnica. Lectura obligada después del nuestro.
