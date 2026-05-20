@@ -49,7 +49,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build & push node-api
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: services/node-api/Dockerfile
@@ -75,7 +75,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build & push spring-api
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: services/spring-api/Dockerfile
@@ -101,7 +101,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build & push web
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.web

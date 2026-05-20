@@ -105,7 +105,7 @@ jobs:
 
       # All image builds share the GHA cache scoped per service.
       - name: Build node-api image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: services/node-api/Dockerfile
@@ -115,7 +115,7 @@ jobs:
           cache-to: type=gha,scope=node-api,mode=max
 
       - name: Build spring-api image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: services/spring-api/Dockerfile
@@ -125,7 +125,7 @@ jobs:
           cache-to: type=gha,scope=spring-api,mode=max
 
       - name: Build web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.web
