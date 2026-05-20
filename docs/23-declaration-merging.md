@@ -319,3 +319,4 @@ Los dos juntos:
 ---
 
 **Anterior:** [22 — Overloads y `satisfies`](./22-overloads-y-satisfies.md)
+**Siguiente:** [24 — `Symbol` y `unique symbol`](./24-symbol-y-unique-symbol.md)

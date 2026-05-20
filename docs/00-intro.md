@@ -35,33 +35,51 @@ El curso no sustituye al libro de Dan Vanderkam (https://effectivetypescript.com
 
 **Los números son de la 2ª edición** (mayo 2024). Si solo tienes la 1ª edición, busca por concepto.
 
-| Capítulo nuestro | Items relevantes (2ª ed) |
-|------------------|--------------------------|
-| 01 — Runtime y ESM | 3, 72, 73, 79 |
-| 02 — tsconfig estricto | 2, 11, 14, 22, 83 |
-| 03 — Validación con Zod | 30, 46, 74, 76 |
-| 04 — Result type | 22, 32, 34, 59 |
-| 05 — Testing con `node --test` | 55, 77 |
-| 06 — Branded types | 4, 35, 41, 64 |
-| 07 — Servicios y repositorios | 13, 29, 41, 67 |
-| 08 — Persistencia SQLite | 30, 46, 74, 76 |
-| 09 — Frontend del curso | 22, 75, 76 |
-| 10 — Docker y tooling | 2, 65, 78 |
-| 11 — Postgres (Supabase) | 30, 35, 41, 74 |
-| 12 — Error handling y observabilidad | 33, 34, 41, 59 |
-| 13 — CI/CD | 2, 65, 78 |
-| 14 — Type-level testing | 50, 55, 56, 77 |
-| 15 — Métricas Prometheus | 34, 41, 76, 78 |
-| 16 — OpenTelemetry tracing | 27, 33, 41, 76 |
-| 17 — Stack observabilidad | 41, 65, 76, 78 |
-| 18 — Narrowing y type guards | 5, 22, 42, 59 |
-| 19 — Generics avanzados | 26, 50, 51, 52 |
-| 20 — Conditional types e `infer` | 50, 51, 52, 53 |
-| 21 — Template literal y mapped types | 14, 15, 53 |
-| 22 — Overloads y `satisfies` | 21, 49, 50 |
-| 23 — Declaration merging | 13, 79, 82 |
+### Track base (00–17)
 
-Los capítulos 18–23 son un **track de TS idiomático avanzado** — los puedes leer una vez tienes el track principal (00–17) y el código del repo te resulta familiar. Cubren narrowing profundo, generics con constraints/varianza, conditional types, mapped types, overloads/`satisfies` y declaration merging.
+Fundamentos + stack realista. Cada capítulo apunta al código en `services/node-api/` y `web/`.
+
+| Capítulo                                                          | Items *Effective TS* (2ª ed) |
+|-------------------------------------------------------------------|------------------------------|
+| ✅ 00 (este)                                                       | —                            |
+| ✅ [01 — Runtime y ESM](./01-runtime-y-esm.md)                     | 3, 72, 73, 79                |
+| ✅ [02 — tsconfig estricto](./02-tsconfig-strict.md)               | 2, 11, 14, 22, 83            |
+| ✅ [03 — Validación con Zod](./03-validacion-con-zod.md)           | 30, 46, 74, 76               |
+| ✅ [04 — Result type](./04-result-type.md)                         | 22, 32, 34, 59               |
+| ✅ [05 — Testing con `node --test`](./05-testing-node-test.md)     | 55, 77                       |
+| ✅ [06 — Branded types](./06-branded-types.md)                     | 4, 14, 35, 41, 64            |
+| ✅ [07 — Servicios y repositorios](./07-servicios-y-repositorios.md) | 13, 29, 41, 67             |
+| ✅ [08 — Persistencia SQLite](./08-persistencia-sqlite.md)         | 30, 46, 74, 76               |
+| ✅ [09 — Frontend del curso](./09-frontend-curso.md)               | 22, 75, 76                   |
+| ✅ [10 — Docker y tooling](./10-docker-y-tooling.md)               | 2, 65, 78                    |
+| ✅ [11 — Postgres (Supabase)](./11-supabase-postgres.md)           | 30, 35, 41, 74               |
+| ✅ [12 — Error handling y observabilidad](./12-error-handling-y-observabilidad.md) | 33, 34, 41, 59 |
+| ✅ [13 — CI/CD](./13-ci-cd.md)                                     | 2, 65, 78                    |
+| ✅ [14 — Type-level testing](./14-type-level-testing.md)           | 50, 55, 56, 77               |
+| ✅ [15 — Métricas Prometheus](./15-metricas-prometheus.md)         | 34, 41, 76, 78               |
+| ✅ [16 — OpenTelemetry tracing](./16-opentelemetry-tracing.md)     | 27, 33, 41, 76               |
+| ✅ [17 — Stack observabilidad](./17-observabilidad-stack.md)       | 41, 65, 76, 78               |
+
+### Track avanzado de TS idiomático (18–27)
+
+Cubre los huecos teóricos del track base: narrowing profundo, generics y type-level programming, mapped/conditional types, evolución de APIs públicas. Léelo cuando el código del repo te resulte familiar — los conceptos se referencian entre sí.
+
+| Capítulo                                                                          | Items *Effective TS* (2ª ed) |
+|-----------------------------------------------------------------------------------|------------------------------|
+| ✅ [18 — Narrowing y type guards](./18-narrowing-y-type-guards.md)                | 5, 22, 42, 59                |
+| ✅ [19 — Generics avanzados](./19-generics-avanzados.md)                          | 26, 50, 51, 52               |
+| ✅ [20 — Conditional types e `infer`](./20-conditional-types-e-infer.md)          | 50, 51, 52, 53               |
+| ✅ [21 — Template literal y mapped types](./21-template-literal-y-mapped-types.md) | 14, 15, 53                  |
+| ✅ [22 — Overloads y `satisfies`](./22-overloads-y-satisfies.md)                  | 21, 49, 50                   |
+| ✅ [23 — Declaration merging](./23-declaration-merging.md)                        | 13, 79, 82                   |
+| ✅ [24 — `Symbol` y `unique symbol`](./24-symbol-y-unique-symbol.md)              | 53, 64                       |
+| ✅ [25 — Index signatures y `Record`](./25-index-signatures-y-record.md)          | 17, 33, 60                   |
+| ✅ [26 — Async, `Promise<T>`, `Awaited<T>`](./26-async-promise-awaited.md)        | 27, 31, 42                   |
+| ✅ [27 — API design y evolución de tipos](./27-api-design-y-evolucion.md)         | 30, 41, 51, 78               |
+
+### Track Spring Boot (independiente)
+
+Si te interesa la versión Java/Spring, hay un track separado en [`docs/springboot/`](./springboot/00-intro.md). **No comparte material con este track** — son dos guías que viven en el mismo repo por conveniencia.
 
 Al final de cada capítulo encontrarás una sección **📖 Lectura paralela** con los items concretos y un link directo al repo del libro.
 
