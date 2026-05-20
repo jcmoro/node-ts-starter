@@ -33,13 +33,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ----- api -----
+      # ----- node-api -----
 
-      - name: Metadata (api)
-        id: meta-api
+      - name: Metadata (node-api)
+        id: meta-node-api
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/api
+          images: ghcr.io/${{ github.repository }}/node-api
           tags: |
             type=ref,event=tag
             type=semver,pattern={{version}}
@@ -48,16 +48,42 @@ jobs:
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build & push api
+      - name: Build & push node-api
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.api
+          file: services/node-api/Dockerfile
           push: true
-          tags: ${{ steps.meta-api.outputs.tags }}
-          labels: ${{ steps.meta-api.outputs.labels }}
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,scope=api,mode=max
+          tags: ${{ steps.meta-node-api.outputs.tags }}
+          labels: ${{ steps.meta-node-api.outputs.labels }}
+          cache-from: type=gha,scope=node-api
+          cache-to: type=gha,scope=node-api,mode=max
+
+      # ----- spring-api -----
+
+      - name: Metadata (spring-api)
+        id: meta-spring-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/spring-api
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build & push spring-api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/spring-api/Dockerfile
+          push: true
+          tags: ${{ steps.meta-spring-api.outputs.tags }}
+          labels: ${{ steps.meta-spring-api.outputs.labels }}
+          cache-from: type=gha,scope=spring-api
+          cache-to: type=gha,scope=spring-api,mode=max
 
       # ----- web -----
 
