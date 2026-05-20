@@ -10,12 +10,19 @@ global:
     cluster: local
 
 scrape_configs:
-  - job_name: api
+  - job_name: node-api
     metrics_path: /metrics
     static_configs:
-      - targets: ['api:3000']
+      - targets: ['node-api:3000']
         labels:
-          service: node-ts-starter-api
+          service: node-ts-starter-node-api
+
+  - job_name: spring-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['spring-api:8080']
+        labels:
+          service: node-ts-starter-spring-api
 
   # Prometheus scrapes itself — useful to see Prometheus's own RED metrics.
   - job_name: prometheus

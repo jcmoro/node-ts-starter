@@ -11,14 +11,14 @@
 name: node-ts-starter
 
 services:
-  api:
+  node-api:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: services/node-api/Dockerfile
       args:
         NODE_VERSION: 22-alpine
-    image: node-ts-starter-api:latest
-    container_name: ntsa-api
+    image: node-ts-starter-node-api:latest
+    container_name: ntsa-node-api
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -57,6 +57,45 @@ services:
     networks:
       - app
 
+  spring-api:
+    build:
+      context: .
+      dockerfile: services/spring-api/Dockerfile
+      args:
+        JAVA_VERSION: "21"
+    image: node-ts-starter-spring-api:latest
+    container_name: ntsa-spring-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      # When DATABASE_URL is set, Spring uses Postgres (shared with node-api).
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-${DATABASE_URL:-}}
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL:-INFO}
+      # OTel: same endpoint as node-api for unified traces in Tempo.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME_SPRING:-node-ts-starter-spring-api}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-}
+    ports:
+      - "${SPRING_API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app
+
   web:
     build:
       context: .
@@ -68,10 +107,10 @@ services:
     container_name: ntsa-web
     restart: unless-stopped
     depends_on:
-      api:
+      node-api:
         condition: service_healthy
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8081}:80"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:80/ || exit 1"]
       interval: 30s

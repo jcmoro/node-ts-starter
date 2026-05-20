@@ -1,0 +1,17 @@
+# Production profile — everything comes from env vars, no defaults.
+# Activate with: SPRING_PROFILES_ACTIVE=prod
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5000
+
+management:
+  endpoint:
+    health:
+      show-details: never  # don't leak infra details in prod /actuator/health

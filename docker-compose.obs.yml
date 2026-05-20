@@ -20,10 +20,10 @@
 #   tempo:4318 (OTLP HTTP)   ← where the api ships traces
 #   tempo:4317 (OTLP gRPC)
 #   prometheus:9090          ← scraping target
-#   api:3000                 ← scraped by Prometheus
+#   node-api:3000            ← scraped by Prometheus
 
 services:
-  api:
+  node-api:
     environment:
       # Send traces to Tempo. The SDK reads this; tracing.ts switches from
       # console exporter to OTLP HTTP automatically when set.
@@ -87,7 +87,7 @@ services:
       - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3001:3000"  # 3000 is taken by api on host
+      - "3001:3000"  # 3000 is taken by node-api on host
     depends_on:
       prometheus:
         condition: service_healthy

@@ -1,0 +1,46 @@
+# Default configuration. Overridden by application-{profile}.yml when a profile
+# is active (SPRING_PROFILES_ACTIVE=dev,prod,...).
+
+spring:
+  application:
+    name: node-ts-starter-spring-api
+
+  # JPA / Hibernate
+  jpa:
+    open-in-view: false  # disable OSIV — session must close before view (we don't have views)
+    hibernate:
+      # `none` because schema lives in /migrations and is owned by node-api's
+      # migration runner. Spring-API never alters the schema.
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  # Datasource is set per-profile (dev / prod) or via SPRING_DATASOURCE_URL env.
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+# Actuator: expose health + prometheus only (no env, beans, etc. in prod).
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN

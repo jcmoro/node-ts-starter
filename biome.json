@@ -12,10 +12,11 @@
       "**/dist",
       "**/build",
       "**/coverage",
+      "**/target",
       "**/*.db",
       "**/*.db-journal",
-      "package-lock.json",
-      "web/package-lock.json",
+      "**/package-lock.json",
+      "services/spring-api/**",
       ".claude",
       ".idea",
       ".vscode"

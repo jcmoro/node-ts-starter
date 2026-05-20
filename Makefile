@@ -1,4 +1,4 @@
-# Makefile — orchestration layer for node-ts-starter.
+# Makefile — orchestration layer for node-ts-starter (multilingual: Node + Spring).
 #
 # Run `make` or `make help` for the full list of targets.
 
@@ -17,6 +17,9 @@ COMPOSE_OBS     := $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml -f
 DOCKER_BUILDKIT ?= 1
 export DOCKER_BUILDKIT
 
+NODE_API_DIR    := services/node-api
+SPRING_API_DIR  := services/spring-api
+
 # ---------- Help (default) ----------
 
 .DEFAULT_GOAL := help
@@ -32,11 +35,11 @@ help: ## Show this help.
 ## --- Setup ---
 
 .PHONY: install
-install: install-api install-web ## Install all dependencies (api + web).
+install: install-node-api install-web ## Install all node-side dependencies (node-api + web).
 
-.PHONY: install-api
-install-api: ## Install backend dependencies.
-	npm install
+.PHONY: install-node-api
+install-node-api: ## Install node-api dependencies.
+	cd $(NODE_API_DIR) && npm install
 
 .PHONY: install-web
 install-web: ## Install frontend dependencies.
@@ -44,62 +47,85 @@ install-web: ## Install frontend dependencies.
 
 ## --- Local dev (no docker) ---
 
-.PHONY: dev-api
-dev-api: ## Run backend dev server with --watch (port 3000).
-	npm run dev
+.PHONY: dev-node-api
+dev-node-api: ## Run node-api dev server with --watch (port 3000).
+	cd $(NODE_API_DIR) && npm run dev
+
+.PHONY: dev-spring-api
+dev-spring-api: ## Run spring-api dev server (port 8080).
+	cd $(SPRING_API_DIR) && mvn spring-boot:run
 
 .PHONY: dev-web
 dev-web: ## Run Vite dev server (port 5173).
 	cd web && npm run dev
 
 .PHONY: dev
-dev: ## Run api + web concurrently (use two terminals for clean output).
-	$(MAKE) -j 2 dev-api dev-web
+dev: ## Run node-api + web concurrently (use two terminals for clean output).
+	$(MAKE) -j 2 dev-node-api dev-web
 
-## --- Quality ---
+## --- Quality: Node-API ---
 
-.PHONY: typecheck
-typecheck: ## Type-check api + web.
-	npm run typecheck
+.PHONY: node-typecheck
+node-typecheck: ## Type-check node-api + web.
+	cd $(NODE_API_DIR) && npm run typecheck
 	cd web && npm run typecheck
 
-.PHONY: lint
-lint: ## Lint with Biome (no writes).
-	npx biome check .
+.PHONY: node-lint
+node-lint: ## Lint with Biome across the repo (no writes).
+	npx --prefix $(NODE_API_DIR) biome check .
 
-.PHONY: lint-fix
-lint-fix: ## Lint and apply safe fixes.
-	npx biome check --write .
+.PHONY: node-lint-fix
+node-lint-fix: ## Lint and apply safe fixes.
+	npx --prefix $(NODE_API_DIR) biome check --write .
 
-.PHONY: format
-format: ## Format with Biome.
-	npx biome format --write .
+.PHONY: node-format
+node-format: ## Format with Biome.
+	npx --prefix $(NODE_API_DIR) biome format --write .
 
-.PHONY: test
-test: ## Run backend test suite.
-	npm test
+.PHONY: node-test
+node-test: ## Run node-api test suite.
+	cd $(NODE_API_DIR) && npm test
 
-.PHONY: test-watch
-test-watch: ## Run tests in watch mode.
-	npm run test:watch
+.PHONY: node-test-watch
+node-test-watch: ## Run node-api tests in watch mode.
+	cd $(NODE_API_DIR) && npm run test:watch
 
-.PHONY: test-coverage
-test-coverage: ## Run tests with coverage report.
-	npm run test:coverage
+.PHONY: node-test-coverage
+node-test-coverage: ## Run node-api tests with coverage report.
+	cd $(NODE_API_DIR) && npm run test:coverage
 
-.PHONY: test-postgres
-test-postgres: ## Run tests with TEST_DATABASE_URL pointing at local pg (must be running).
-	TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:$${DB_PORT:-55432}/app npm test
+.PHONY: node-test-postgres
+node-test-postgres: ## Run node-api tests with TEST_DATABASE_URL pointing at local pg (must be running).
+	cd $(NODE_API_DIR) && TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:$${DB_PORT:-55432}/app npm test
 
-.PHONY: migrate
-migrate: ## Apply pending Postgres migrations (uses DATABASE_URL from .env).
-	npm run migrate
+.PHONY: node-migrate
+node-migrate: ## Apply pending Postgres migrations from node-api (uses DATABASE_URL from .env).
+	cd $(NODE_API_DIR) && npm run migrate
+
+.PHONY: node-check
+node-check: node-lint node-typecheck node-test ## Run all node-api quality gates.
+
+## --- Quality: Spring-API ---
+
+.PHONY: spring-test
+spring-test: ## Run spring-api tests.
+	cd $(SPRING_API_DIR) && mvn test
+
+.PHONY: spring-package
+spring-package: ## Build spring-api jar (skip tests).
+	cd $(SPRING_API_DIR) && mvn -DskipTests package
+
+.PHONY: spring-check
+spring-check: ## Run spring-api full verify (compile + tests + checks).
+	cd $(SPRING_API_DIR) && mvn verify
+
+## --- Combined ---
 
 .PHONY: check
-check: lint typecheck test ## Run all quality gates (lint + typecheck + tests).
+check: node-check spring-check ## Run all quality gates across both services.
 
 .PHONY: ci ci-web-build
-ci: check ci-web-build build ## Reproduce CI locally (assumes deps installed): check + web build + docker build.
+ci: check ci-web-build build ## Reproduce CI locally: check + web build + docker build.
 
 ci-web-build:
 	cd web && npm run build
@@ -110,24 +136,30 @@ ci-web-build:
 build: ## Build all images (production).
 	$(COMPOSE) build
 
-.PHONY: build-api
-build-api: ## Build only the api image.
-	$(COMPOSE) build api
+.PHONY: build-node-api
+build-node-api: ## Build only the node-api image.
+	$(COMPOSE) build node-api
+
+.PHONY: build-spring-api
+build-spring-api: ## Build only the spring-api image.
+	$(COMPOSE) build spring-api
 
 .PHONY: build-web
 build-web: ## Build only the web image.
 	$(COMPOSE) build web
 
-API_PORT ?= 3000
-WEB_PORT ?= 8080
-export API_PORT WEB_PORT
+API_PORT        ?= 3000
+SPRING_API_PORT ?= 8080
+WEB_PORT        ?= 8081
+export API_PORT SPRING_API_PORT WEB_PORT
 
 .PHONY: up
-up: ## Start the production stack in background (override ports via API_PORT, WEB_PORT).
+up: ## Start the production stack in background (override ports via API_PORT, SPRING_API_PORT, WEB_PORT).
 	$(COMPOSE) up -d --remove-orphans
 	@echo
-	@echo "  api: http://localhost:$(API_PORT)/health"
-	@echo "  web: http://localhost:$(WEB_PORT)/"
+	@echo "  node-api:   http://localhost:$(API_PORT)/health"
+	@echo "  spring-api: http://localhost:$(SPRING_API_PORT)/actuator/health"
+	@echo "  web:        http://localhost:$(WEB_PORT)/"
 	@echo
 
 .PHONY: up-fg
@@ -135,14 +167,15 @@ up-fg: ## Start the production stack in the foreground.
 	$(COMPOSE) up --remove-orphans
 
 .PHONY: up-dev
-up-dev: ## Start the stack with dev overrides (Vite on :5173, api with --watch).
+up-dev: ## Start the stack with dev overrides (Vite on :5173, node-api with --watch).
 	$(COMPOSE_DEV) up --remove-orphans
 
 .PHONY: obs-up
 obs-up: ## Start dev stack + observability (Prometheus :9090, Tempo :3200, Grafana :3001).
 	$(COMPOSE_OBS) up -d --remove-orphans
 	@echo
-	@echo "  api:        http://localhost:3000/health"
+	@echo "  node-api:   http://localhost:3000/health"
+	@echo "  spring-api: http://localhost:8080/actuator/health"
 	@echo "  web:        http://localhost:5173/"
 	@echo "  Grafana:    http://localhost:3001/"
 	@echo "  Prometheus: http://localhost:9090/"
@@ -176,17 +209,25 @@ ps: ## Show running services.
 logs: ## Tail logs from all services.
 	$(COMPOSE) logs -f --tail=100
 
-.PHONY: logs-api
-logs-api: ## Tail api logs.
-	$(COMPOSE) logs -f --tail=100 api
+.PHONY: logs-node-api
+logs-node-api: ## Tail node-api logs.
+	$(COMPOSE) logs -f --tail=100 node-api
+
+.PHONY: logs-spring-api
+logs-spring-api: ## Tail spring-api logs.
+	$(COMPOSE) logs -f --tail=100 spring-api
 
 .PHONY: logs-web
 logs-web: ## Tail web logs.
 	$(COMPOSE) logs -f --tail=100 web
 
-.PHONY: shell-api
-shell-api: ## Open a shell inside the api container.
-	$(COMPOSE) exec api sh
+.PHONY: shell-node-api
+shell-node-api: ## Open a shell inside the node-api container.
+	$(COMPOSE) exec node-api sh
+
+.PHONY: shell-spring-api
+shell-spring-api: ## Open a shell inside the spring-api container.
+	$(COMPOSE) exec spring-api sh
 
 .PHONY: shell-web
 shell-web: ## Open a shell inside the web container.
@@ -207,9 +248,11 @@ db-shell: ## Open a psql shell into the local Postgres dev container.
 	$(COMPOSE_DEV) exec db psql -U postgres -d app
 
 .PHONY: smoke
-smoke: ## Smoke-test the running stack (api health + web index).
-	@echo "→ api health (port $(API_PORT)):"
+smoke: ## Smoke-test the running stack (both apis + web index).
+	@echo "→ node-api health (port $(API_PORT)):"
 	@curl -fsS "http://localhost:$(API_PORT)/health" && echo
+	@echo "→ spring-api health (port $(SPRING_API_PORT)):"
+	@curl -fsS "http://localhost:$(SPRING_API_PORT)/actuator/health" && echo
 	@echo "→ web index (port $(WEB_PORT)):"
 	@curl -fsSI "http://localhost:$(WEB_PORT)/" | head -1
 
@@ -221,8 +264,12 @@ clean: ## Stop stack and remove containers + named volumes + local images.
 
 .PHONY: clean-deps
 clean-deps: ## Remove all node_modules.
-	rm -rf node_modules web/node_modules
+	rm -rf $(NODE_API_DIR)/node_modules web/node_modules node_modules
+
+.PHONY: clean-spring
+clean-spring: ## Remove Spring Maven target/ output.
+	cd $(SPRING_API_DIR) && mvn clean
 
 .PHONY: clean-all
-clean-all: clean clean-deps ## Full reset: containers, volumes, images, node_modules.
-	rm -rf web/dist coverage
+clean-all: clean clean-deps clean-spring ## Full reset: containers, volumes, images, node_modules, Maven target.
+	rm -rf web/dist $(NODE_API_DIR)/coverage

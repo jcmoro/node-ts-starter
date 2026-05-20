@@ -5,18 +5,18 @@
 #   (or `make up-dev`)
 #
 # Differences from production compose:
-#   - api: bind-mount src/, --watch enabled, LOG_LEVEL=debug
-#   - api: also bind-mounts migrations/ so they're picked up live
-#   - api: DATABASE_URL points to the local `db` service by default
-#   - db:  new service — postgres 16 alpine, exposed on host port 55432
-#   - web: replaces nginx with a Node container running Vite dev server (5173)
+#   - node-api: bind-mount services/node-api/src, --watch enabled, LOG_LEVEL=debug
+#   - node-api: also bind-mounts migrations/ so they're picked up live
+#   - node-api: DATABASE_URL points to the local `db` service by default
+#   - db:       new service — postgres 16 alpine, exposed on host port 55432
+#   - web:      replaces nginx with a Node container running Vite dev server (5173)
 #
 # To target Supabase from local dev instead of the bundled `db` service,
 # set DATABASE_URL in .env (it overrides the default below) and stop the
 # `db` service: `docker compose stop db`.
 
 services:
-  api:
+  node-api:
     environment:
       NODE_ENV: development
       LOG_LEVEL: debug
@@ -29,11 +29,28 @@ services:
       - --experimental-sqlite
       - src/index.ts
     volumes:
-      - ./src:/app/src:ro
+      - ./services/node-api/src:/app/services/node-api/src:ro
       - ./migrations:/app/migrations:ro
       - api-data-dev:/data
     depends_on:
       db:
+        condition: service_healthy
+
+  spring-api:
+    environment:
+      # Override the prod profile: in `make up-dev` we point Spring at the
+      # bundled `db` service, not Supabase.
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      LOGGING_LEVEL_ROOT: DEBUG
+    depends_on:
+      db:
+        condition: service_healthy
+      node-api:
+        # node-api owns the schema (migrations); wait for it to be healthy
+        # so the users table exists before Spring queries it.
         condition: service_healthy
 
   db:

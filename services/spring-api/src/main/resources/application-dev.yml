@@ -1,0 +1,16 @@
+# Local development profile.
+# Activate with: SPRING_PROFILES_ACTIVE=dev (or via mvn spring-boot:run -Dspring-boot.run.profiles=dev)
+
+spring:
+  datasource:
+    # Defaults to the local `db` service from docker-compose.dev.yml.
+    # Override with SPRING_DATASOURCE_URL to point at another Postgres.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/app}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+logging:
+  level:
+    root: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE  # echo bound parameters in query logs

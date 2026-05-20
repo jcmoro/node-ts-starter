@@ -6,3 +6,13 @@ dist
 *.db
 *.db-journal
 .DS_Store
+
+# Java / Maven
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+.vscode/
+*.iml

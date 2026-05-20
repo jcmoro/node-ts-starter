@@ -6,15 +6,17 @@
 #   deps    → installs only production dependencies (npm ci --omit=dev)
 #   runtime → final image, copies node_modules + source, runs with strip-types
 #
-# Build context: repository root (so we can copy src/ and package*.json).
+# Build context: repository root. We replicate the monorepo layout inside the
+# image so that relative paths (e.g. ../../../../migrations/ from migrate.ts)
+# resolve correctly inside the container.
 
 ARG NODE_VERSION=22-alpine
 
 # ---------- deps ----------
 FROM node:${NODE_VERSION} AS deps
 
-WORKDIR /app
-COPY package.json package-lock.json ./
+WORKDIR /app/services/node-api
+COPY services/node-api/package.json services/node-api/package-lock.json ./
 
 # BuildKit cache mount: persists npm cache across builds for fast rebuilds.
 RUN --mount=type=cache,target=/root/.npm \
@@ -32,11 +34,12 @@ RUN addgroup -g 1001 -S nodejs && \
     mkdir -p /data && \
     chown -R app:nodejs /data
 
-WORKDIR /app
-COPY --chown=app:nodejs --from=deps /app/node_modules ./node_modules
-COPY --chown=app:nodejs package.json ./
-COPY --chown=app:nodejs src ./src
-COPY --chown=app:nodejs migrations ./migrations
+WORKDIR /app/services/node-api
+COPY --chown=app:nodejs --from=deps /app/services/node-api/node_modules ./node_modules
+COPY --chown=app:nodejs services/node-api/package.json ./
+COPY --chown=app:nodejs services/node-api/src ./src
+# Migrations live at the repo root and are shared between APIs.
+COPY --chown=app:nodejs migrations /app/migrations
 
 USER app
 
@@ -52,7 +55,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:3000/ready || exit 1
 
 LABEL org.opencontainers.image.title="node-ts-starter-api" \
-      org.opencontainers.image.description="Hono backend (TypeScript, SQLite)" \
+      org.opencontainers.image.description="Hono backend (TypeScript, SQLite/Postgres)" \
       org.opencontainers.image.source="https://github.com/your/node-ts-starter" \
       org.opencontainers.image.licenses="MIT"
 

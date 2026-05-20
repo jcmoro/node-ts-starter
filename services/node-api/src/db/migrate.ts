@@ -2,7 +2,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { PostgresClient } from './postgres.ts';
 
-const MIGRATIONS_URL = new URL('../../migrations/', import.meta.url);
+// Resolves to repo_root/migrations/ — shared between node-api and spring-api.
+// Path: services/node-api/src/db/migrate.ts → ../../../../migrations/
+const MIGRATIONS_URL = new URL('../../../../migrations/', import.meta.url);
 
 export type MigrationResult = { applied: string[] };
 
