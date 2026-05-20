@@ -1,4 +1,6 @@
-# 00 — Introducción
+# 00 — Introducción al track *Effective TypeScript*
+
+> Para una vista global del repo y los tres tracks disponibles, ver [`docs/README.md`](../README.md).
 
 ## Para quién es esto
 
@@ -35,9 +37,9 @@ El curso no sustituye al libro de Dan Vanderkam (https://effectivetypescript.com
 
 **Los números son de la 2ª edición** (mayo 2024). Si solo tienes la 1ª edición, busca por concepto.
 
-### Track base (00–17)
+### Track Effective TypeScript — base (00–17)
 
-Fundamentos + stack realista. Cada capítulo apunta al código en `services/node-api/` y `web/`.
+Fundamentos + stack realista, anclado al libro [*Effective TypeScript* (2ª ed.)](https://effectivetypescript.com/) de Dan Vanderkam. Cada capítulo apunta al código en `services/node-api/` y `web/`.
 
 | Capítulo                                                          | Items *Effective TS* (2ª ed) |
 |-------------------------------------------------------------------|------------------------------|
@@ -60,9 +62,9 @@ Fundamentos + stack realista. Cada capítulo apunta al código en `services/node
 | ✅ [16 — OpenTelemetry tracing](./16-opentelemetry-tracing.md)     | 27, 33, 41, 76               |
 | ✅ [17 — Stack observabilidad](./17-observabilidad-stack.md)       | 41, 65, 76, 78               |
 
-### Track avanzado de TS idiomático (18–27)
+### Track Effective TypeScript — avanzado (18–27)
 
-Cubre los huecos teóricos del track base: narrowing profundo, generics y type-level programming, mapped/conditional types, evolución de APIs públicas. Léelo cuando el código del repo te resulte familiar — los conceptos se referencian entre sí.
+Cubre los huecos teóricos del track base: narrowing profundo, generics y type-level programming, mapped/conditional types, evolución de APIs públicas. Mismo libro de referencia (*Effective TypeScript*), capítulos más densos. Léelo cuando el código del repo te resulte familiar — los conceptos se referencian entre sí.
 
 | Capítulo                                                                          | Items *Effective TS* (2ª ed) |
 |-----------------------------------------------------------------------------------|------------------------------|
@@ -77,11 +79,12 @@ Cubre los huecos teóricos del track base: narrowing profundo, generics y type-l
 | ✅ [26 — Async, `Promise<T>`, `Awaited<T>`](./26-async-promise-awaited.md)        | 27, 31, 42                   |
 | ✅ [27 — API design y evolución de tipos](./27-api-design-y-evolucion.md)         | 30, 41, 51, 78               |
 
-### Track Spring Boot (independiente)
-
-Si te interesa la versión Java/Spring, hay un track separado en [`docs/springboot/`](./springboot/00-intro.md). **No comparte material con este track** — son dos guías que viven en el mismo repo por conveniencia.
-
 Al final de cada capítulo encontrarás una sección **📖 Lectura paralela** con los items concretos y un link directo al repo del libro.
+
+### Tracks relacionados
+
+- [Track Total TypeScript](../totaltypescript/00-intro.md) — notas propias sobre el libro de Matt Pocock, complementarias a este track.
+- [Track Spring Boot](../springboot/00-intro.md) — guía paralela en Java/Spring para `services/spring-api/`. Independiente de este track.
 
 ## Convenciones
 

@@ -1,8 +1,8 @@
 export type Chapter = {
-  slug: string; // e.g. "00-intro" or "springboot/00-intro"
+  slug: string; // e.g. "effectivetypescript/00-intro" or "springboot/00-intro"
   title: string;
   content: string;
-  track: string; // e.g. "typescript" or "springboot"
+  track: string; // e.g. "effectivetypescript", "totaltypescript" or "springboot"
 };
 
 export type Track = {
@@ -21,10 +21,11 @@ const modules = import.meta.glob('../../docs/**/*.md', {
 
 // Track metadata: label and display order. Anything not in TRACK_ORDER falls
 // to the end alphabetically.
-const TRACK_ORDER = ['typescript', 'springboot'] as const;
+const TRACK_ORDER = ['effectivetypescript', 'totaltypescript', 'springboot'] as const;
 const TRACK_LABELS: Record<string, string> = {
-  typescript: 'Track TypeScript',
-  springboot: 'Track Spring Boot',
+  effectivetypescript: 'Effective TypeScript',
+  totaltypescript: 'Total TypeScript',
+  springboot: 'Spring Boot',
 };
 
 function extractTitle(md: string): string {
@@ -33,19 +34,20 @@ function extractTitle(md: string): string {
 }
 
 function slugFromPath(path: string): string {
-  // '../../docs/00-intro.md'            → 'typescript/00-intro'
-  // '../../docs/springboot/00-intro.md' → 'springboot/00-intro'
+  // '../../docs/effectivetypescript/00-intro.md' → 'effectivetypescript/00-intro'
+  // '../../docs/springboot/00-intro.md'          → 'springboot/00-intro'
+  // '../../docs/totaltypescript/00-intro.md'     → 'totaltypescript/00-intro'
   //
-  // Files at the docs/ root (no subdir) are treated as the default TS track
-  // and get a synthesized 'typescript/' prefix in the slug. We do this in
-  // code instead of moving files so existing relative md links keep working.
+  // Every chapter lives under a track subfolder, so the slug is just the
+  // path with the docs/ prefix and .md suffix stripped. If a file ends up
+  // at docs/ root without a subfolder, it falls into the default track.
   const trimmed = path.replace(/^.*\/docs\//, '').replace(/\.md$/, '');
-  return trimmed.includes('/') ? trimmed : `typescript/${trimmed}`;
+  return trimmed.includes('/') ? trimmed : `effectivetypescript/${trimmed}`;
 }
 
 function trackFromSlug(slug: string): string {
   const idx = slug.indexOf('/');
-  return idx >= 0 ? slug.slice(0, idx) : 'typescript';
+  return idx >= 0 ? slug.slice(0, idx) : 'effectivetypescript';
 }
 
 function trackOrder(track: string): number {

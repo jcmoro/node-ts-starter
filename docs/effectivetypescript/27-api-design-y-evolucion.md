@@ -471,4 +471,4 @@ declare module 'my-lib' {
 ---
 
 **Anterior:** [26 — Async, `Promise<T>` y `Awaited<T>`](./26-async-promise-awaited.md)
-**Siguiente:** *(fin del track TS idiomático avanzado)*
+**Siguiente:** *(fin del track TS avanzado — el repo continúa con el track [Total TypeScript Essentials](./totaltypescript/00-intro.md) en su propia carpeta)*

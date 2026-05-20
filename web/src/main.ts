@@ -77,11 +77,17 @@ function renderContent(slug: string): void {
 function render(): void {
   const { slug } = currentRoute();
 
-  // Backwards compat: '00-intro' (no track prefix) → 'typescript/00-intro'.
+  // Backwards compat for legacy URLs:
+  //   '00-intro'             → 'effectivetypescript/00-intro'
+  //   'typescript/00-intro'  → 'effectivetypescript/00-intro' (old track name)
   // Anything still unknown after that falls back to the default chapter.
   if (slug && !findChapter(slug)) {
-    const legacy = findChapter(`typescript/${slug}`);
-    navigate(legacy ? legacy.slug : defaultSlug());
+    const tsLegacy = slug.startsWith('typescript/')
+      ? findChapter(`effectivetypescript/${slug.slice('typescript/'.length)}`)
+      : undefined;
+    const flatLegacy = !slug.includes('/') ? findChapter(`effectivetypescript/${slug}`) : undefined;
+    const resolved = tsLegacy ?? flatLegacy;
+    navigate(resolved ? resolved.slug : defaultSlug());
     return;
   }
 
