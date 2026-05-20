@@ -71,8 +71,10 @@ services:
       # When DATABASE_URL is set, Spring uses Postgres (shared with node-api).
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-${DATABASE_URL:-}}
       LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL:-INFO}
-      # OTel: same endpoint as node-api for unified traces in Tempo.
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      # OTel: defaults to localhost (silent fail if no collector). The obs
+      # override (docker-compose.obs.yml) sets this to http://tempo:4318
+      # when the observability stack is up.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME_SPRING:-node-ts-starter-spring-api}
       OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-}
     ports:

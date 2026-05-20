@@ -5,6 +5,14 @@ spring:
   application:
     name: node-ts-starter-spring-api
 
+  # Virtual threads (Java 21+): Tomcat, @Async and @Scheduled now run on
+  # virtual threads. I/O-bound requests no longer block a platform thread
+  # while waiting on JDBC / HTTP. Watch for `synchronized` blocks pinning
+  # virtual threads to carriers: -Djdk.tracePinnedThreads=full.
+  threads:
+    virtual:
+      enabled: true
+
   # JPA / Hibernate
   jpa:
     open-in-view: false  # disable OSIV — session must close before view (we don't have views)
@@ -24,7 +32,8 @@ server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
 
-# Actuator: expose health + prometheus only (no env, beans, etc. in prod).
+# Actuator: expose health + info + prometheus by default. Add others only via
+# a profile (e.g. application-dev.yml) — keeps the surface area tight in prod.
 management:
   endpoints:
     web:
@@ -38,9 +47,28 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  # Tracing: 100% sample in dev (overridden per profile in prod). Sends spans
+  # to OTLP HTTP endpoint — Tempo, Honeycomb, Datadog all accept this.
+  tracing:
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
 
 logging:
   level:
     root: ${LOGGING_LEVEL_ROOT:INFO}
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
+  # Inject service name + traceId/spanId from MDC into every log line so logs
+  # can be correlated to traces in Grafana/Tempo with a single click.
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+# Typed config bound to UsersConfig (com.josemoro.api.users.UsersConfig).
+# Validated at startup; invalid values prevent the app from booting.
+app:
+  users:
+    default-page-size: 20
+    max-page-size: 100
