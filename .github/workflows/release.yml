@@ -37,7 +37,7 @@ jobs:
 
       - name: Metadata (node-api)
         id: meta-node-api
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/node-api
           tags: |
@@ -63,7 +63,7 @@ jobs:
 
       - name: Metadata (spring-api)
         id: meta-spring-api
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/spring-api
           tags: |
@@ -89,7 +89,7 @@ jobs:
 
       - name: Metadata (web)
         id: meta-web
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/web
           tags: |
