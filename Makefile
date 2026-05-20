@@ -20,6 +20,15 @@ export DOCKER_BUILDKIT
 NODE_API_DIR    := services/node-api
 SPRING_API_DIR  := services/spring-api
 
+# JAVA_HOME for Maven (Spring targets). If the shell has it set, we keep it.
+# Otherwise on macOS, resolve Java 21 automatically via /usr/libexec/java_home.
+# Linux users that need a custom path can set JAVA_HOME in their shell.
+ifeq ($(JAVA_HOME),)
+    ifneq ($(wildcard /usr/libexec/java_home),)
+        export JAVA_HOME := $(shell /usr/libexec/java_home -v 21 2>/dev/null)
+    endif
+endif
+
 # ---------- Help (default) ----------
 
 .DEFAULT_GOAL := help
@@ -67,8 +76,10 @@ dev: ## Run node-api + web concurrently (use two terminals for clean output).
 
 .PHONY: node-typecheck
 node-typecheck: ## Type-check node-api + web.
-	cd $(NODE_API_DIR) && npm run typecheck
-	cd web && npm run typecheck
+	# Subshells so the second `cd` is relative to the original CWD even
+	# under `.ONESHELL` (which keeps all recipe lines in one shell).
+	( cd $(NODE_API_DIR) && npm run typecheck )
+	( cd web && npm run typecheck )
 
 .PHONY: node-lint
 node-lint: ## Lint with Biome across the repo (no writes).

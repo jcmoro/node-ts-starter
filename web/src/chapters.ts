@@ -1,8 +1,8 @@
 export type Chapter = {
-  slug: string;     // e.g. "00-intro" or "springboot/00-intro"
+  slug: string; // e.g. "00-intro" or "springboot/00-intro"
   title: string;
   content: string;
-  track: string;    // e.g. "typescript" or "springboot"
+  track: string; // e.g. "typescript" or "springboot"
 };
 
 export type Track = {

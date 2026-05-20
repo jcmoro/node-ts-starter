@@ -17,7 +17,7 @@ function findChapter(slug: string): Chapter | undefined {
 
 function trackOfSlug(slug: string): string {
   const idx = slug.indexOf('/');
-  return idx >= 0 ? slug.slice(0, idx) : tracks[0]?.id ?? 'typescript';
+  return idx >= 0 ? slug.slice(0, idx) : (tracks[0]?.id ?? 'typescript');
 }
 
 function firstChapterOfTrack(trackId: string): string {
