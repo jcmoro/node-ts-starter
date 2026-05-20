@@ -20,14 +20,12 @@ export DOCKER_BUILDKIT
 NODE_API_DIR    := services/node-api
 SPRING_API_DIR  := services/spring-api
 
-# JAVA_HOME for Maven (Spring targets). If the shell has it set, we keep it.
-# Otherwise on macOS, resolve Java 21 automatically via /usr/libexec/java_home.
-# Linux users that need a custom path can set JAVA_HOME in their shell.
-ifeq ($(JAVA_HOME),)
-    ifneq ($(wildcard /usr/libexec/java_home),)
-        export JAVA_HOME := $(shell /usr/libexec/java_home -v 21 2>/dev/null)
-    endif
-endif
+# JAVA_HOME for Maven (Spring targets only — does NOT touch the user's shell
+# JAVA_HOME for other tools). On macOS, resolves Java 21 via java_home -v 21
+# (the canonical macOS way). On Linux, set SPRING_JAVA_HOME explicitly if
+# your distro doesn't provide /usr/libexec/java_home.
+SPRING_JAVA_HOME ?= $(shell /usr/libexec/java_home -v 21 2>/dev/null)
+SPRING_MVN := $(if $(SPRING_JAVA_HOME),JAVA_HOME=$(SPRING_JAVA_HOME) ,)mvn
 
 # ---------- Help (default) ----------
 
@@ -62,7 +60,7 @@ dev-node-api: ## Run node-api dev server with --watch (port 3000).
 
 .PHONY: dev-spring-api
 dev-spring-api: ## Run spring-api dev server (port 8080).
-	cd $(SPRING_API_DIR) && mvn spring-boot:run
+	cd $(SPRING_API_DIR) && $(SPRING_MVN) spring-boot:run
 
 .PHONY: dev-web
 dev-web: ## Run Vite dev server (port 5173).
@@ -120,15 +118,15 @@ node-check: node-lint node-typecheck node-test ## Run all node-api quality gates
 
 .PHONY: spring-test
 spring-test: ## Run spring-api tests.
-	cd $(SPRING_API_DIR) && mvn test
+	cd $(SPRING_API_DIR) && $(SPRING_MVN) test
 
 .PHONY: spring-package
 spring-package: ## Build spring-api jar (skip tests).
-	cd $(SPRING_API_DIR) && mvn -DskipTests package
+	cd $(SPRING_API_DIR) && $(SPRING_MVN) -DskipTests package
 
 .PHONY: spring-check
 spring-check: ## Run spring-api full verify (compile + tests + checks).
-	cd $(SPRING_API_DIR) && mvn verify
+	cd $(SPRING_API_DIR) && $(SPRING_MVN) verify
 
 ## --- Combined ---
 
@@ -279,7 +277,7 @@ clean-deps: ## Remove all node_modules.
 
 .PHONY: clean-spring
 clean-spring: ## Remove Spring Maven target/ output.
-	cd $(SPRING_API_DIR) && mvn clean
+	cd $(SPRING_API_DIR) && $(SPRING_MVN) clean
 
 .PHONY: clean-all
 clean-all: clean clean-deps clean-spring ## Full reset: containers, volumes, images, node_modules, Maven target.

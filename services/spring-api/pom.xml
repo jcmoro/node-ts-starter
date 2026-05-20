@@ -152,6 +152,19 @@
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                 </configuration>
             </plugin>
+
+            <!-- Reduce the wait for the forked test JVM to exit cleanly after
+                 System.exit(0). Default is 30s; we drop to 5s because the
+                 Testcontainers + OTel + HikariCP teardown has known background
+                 threads that don't always close quickly. Tests are correct
+                 either way — this just avoids 25s of dead time per run. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkedProcessExitTimeoutInSeconds>5</forkedProcessExitTimeoutInSeconds>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
