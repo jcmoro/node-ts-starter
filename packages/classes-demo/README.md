@@ -1,6 +1,10 @@
 # @ts-starter/classes-demo
 
-> Comparativa side-by-side: el mismo dominio modelado en **functional style** (records + factories, lo que usa `services/node-api/`) y en **OO style** (classes con parameter properties, private constructors, abstract base). Aplica los ejercicios 1, 2 y 3 del [doc 8 — Classes del track Total TypeScript](../../docs/totaltypescript/08-classes.md).
+> Comparativa side-by-side: el mismo dominio modelado en **functional style** (records + factories, lo que usa `services/node-api/`) y en **OO style** (classes con parameter properties, private constructors, abstract base). Aplica los ejercicios **1, 3 y 5** del [doc 8 — Classes del track Total TypeScript](../../docs/totaltypescript/08-classes.md):
+>
+> - **1** — refactor de record a class con parameter properties (`user-functional.ts` ↔ `user-oo.ts`).
+> - **3** — abstract `UserRepository` con `findByIdOrThrow` heredado y `findById`/`save` abstractos.
+> - **5** — `noImplicitOverride: true` en el tsconfig + `override` keyword explícito en la subclase.
 
 ## Qué demuestra
 

@@ -174,17 +174,17 @@ Si el dep es inyectado y no debería cambiar, **siempre** `readonly`. Es lo que 
 
 ## Ejercicio
 
-1. **Refactor de un record a class**: toma el record `User` de `services/node-api/src/domain/user.ts` y conviértelo a una class con parameter properties + getters. Compara los dos enfoques: ¿cuál te resulta más natural? ¿Cuál sería mejor para tu próximo proyecto?
+1. **Refactor de un record a class** ✅ **resuelto en [`packages/classes-demo/`](../../packages/classes-demo/)**: side-by-side del mismo dominio `User` en functional (records + factories) y OO (class con parameter properties + private constructors + abstract Repository). Lee el [README](../../packages/classes-demo/README.md) para la tabla de trade-offs. Para rehacerlo a tu manera, mira `src/user-oo.ts`.
 
 2. **`implements` para forzar contratos**: define `interface UserRepositoryContract` con los métodos públicos. Hace que `UserService` reciba `UserRepositoryContract` en lugar del impl concreto. ¿Qué refactor sale más fácil después?
 
-3. **`abstract` clase base**: implementa `abstract class Repository<T>` con `findByIdOrThrow` heredado y `findById`/`save` abstractos. Crea `UserRepositoryImpl extends Repository<User>`. ¿Cómo se compara con extender `JpaRepository<T, ID>` en `services/spring-api/`?
+3. **`abstract` clase base** ✅ **resuelto en [`packages/classes-demo/src/user-oo.ts`](../../packages/classes-demo/src/user-oo.ts)**: `abstract class UserRepository` con `findByIdOrThrow` heredado y `findById`/`save` abstractos. `InMemoryUserRepository extends UserRepository` la implementa.
 
 4. **`#` private vs `private`**: crea una clase con un secret. Intenta leerlo con `(obj as any).secret` con `private` (sí funciona) y `#secret` (no funciona). ¿Cuándo querrías cada uno?
 
-5. **`override` keyword**: añade `"noImplicitOverride": true` a `tsconfig.json` (en un fork del repo). Verifica que las subclases sin `override` rompen. Es protección frente al typo silent override.
+5. **`override` keyword** ✅ **resuelto en [`packages/classes-demo/`](../../packages/classes-demo/)**: el `tsconfig.json` del package tiene `"noImplicitOverride": true`, y `InMemoryUserRepository` usa `override` explícito en `findById`/`save`. Quita el `override` de un método y verás que el typecheck rompe.
 
-6. **Reto — `decorator` simple sobre method**: el cap. 9 entra a fondo, pero adelántate: escribe un `@log` decorator que loguee entradas y salidas de un método. Necesitarás `"experimentalDecorators": true` o el nuevo standard TC39.
+6. **Reto — `decorator` simple sobre method** ✅ **resuelto en [`packages/decorators/`](../../packages/decorators/)**: `@log` + `@timed` con la firma estándar TC39 stage 3 (sin `experimentalDecorators`), async-aware, stackables. Lee el [README](../../packages/decorators/README.md) para la comparación legacy vs TC39 y por qué necesitamos `tsc` en lugar de `node --experimental-strip-types`.
 
 ## 📖 Otros recursos
 

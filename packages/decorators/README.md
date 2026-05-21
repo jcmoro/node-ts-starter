@@ -1,6 +1,6 @@
 # @ts-starter/decorators-demo
 
-> Demo runnable de **TC39 stage 3 standard decorators** (TS 5.0+, ES2022+). Aplica el ejercicio "Reto — `@log` decorator" del [doc 9 de Total TypeScript](../../docs/totaltypescript/09-typescript-only-features.md) y de [doc 8 — Classes](../../docs/totaltypescript/08-classes.md), ejercicio 6.
+> Demo runnable de **TC39 stage 3 standard decorators** (TS 5.0+, ES2022+). Aplica el ejercicio 6 del [doc 8 — Classes](../../docs/totaltypescript/08-classes.md): "escribe un `@log` decorator que loguee entradas y salidas de un método".
 
 ## Qué demuestra
 
