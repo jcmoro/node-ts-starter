@@ -13,9 +13,7 @@
  *   }
  *   console.log(r.value);
  */
-export type Result<T, E = Error> =
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+export type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
 /**
  * Build a success result. Returns `Result<T, never>` so it composes with
