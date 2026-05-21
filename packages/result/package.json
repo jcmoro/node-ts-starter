@@ -1,0 +1,33 @@
+{
+  "name": "@ts-starter/result",
+  "version": "0.1.0",
+  "description": "Tiny Result<T, E> discriminated union for TypeScript — extracted from node-ts-starter as a publishable lib example.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": ["typescript", "result", "discriminated-union", "either"],
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

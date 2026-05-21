@@ -1,0 +1,20 @@
+{
+  "name": "@ts-starter/decorators-demo",
+  "version": "0.1.0",
+  "description": "TC39 stage 3 standard decorators (TS 5.0+) — @log + @timed examples. Not publishable; runnable demo.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/example.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

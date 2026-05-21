@@ -1,0 +1,21 @@
+{
+  "name": "@ts-starter/classes-demo",
+  "version": "0.1.0",
+  "description": "Side-by-side: functional records+factories vs OO classes for the same User domain. Build with tsc since Node strip-types doesn't support parameter properties yet.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/example.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

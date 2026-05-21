@@ -226,7 +226,7 @@ El `import` no se usa runtime — solo para señalar al compilador "soy un módu
 
 3. **`declare module` para una lib sin tipos**: encuentra alguna lib npm que uses sin tipos (raro en TS, pero algunas viejas). Crea `src/types/that-lib.d.ts` con un `declare module 'that-lib' { ... }` mínimo. Confirma que el import compila.
 
-4. **Reto — publicar `lib/result.ts` como paquete**: extrae `services/node-api/src/lib/result.ts` a una carpeta nueva (`packages/result/`). Crea un `package.json` y `tsconfig.json` propios. `tsc --declaration` genera `.d.ts`. Confirma que desde otro proyecto, `import { ok, err } from '@my-org/result'` da los tipos correctos.
+4. **Reto — publicar `lib/result.ts` como paquete** ✅ **resuelto en [`packages/result/`](../../packages/result/)**: extracción completa con `package.json` + `tsconfig.json` propios + `exports` map condicional (types/import) + `.d.ts.map` para Go-to-Source desde el consumer. Lee el [README del package](../../packages/result/README.md) para los detalles. Si quieres rehacerlo desde cero como ejercicio personal, borra `packages/result/dist/` y reconstrúyelo paso a paso.
 
 5. **`skipLibCheck` impacto**: temporalmente quita `skipLibCheck: true` de tu tsconfig. Mide cuánto tarda `tsc --noEmit`. Vuélvelo a poner. La diferencia debería ser sustancial en codebases con muchas deps.
 
